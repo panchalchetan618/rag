@@ -4,74 +4,123 @@ import django.db.models.deletion
 import pgvector.django.vector
 import uuid
 from django.db import migrations, models
+from django.contrib.postgres.operations import CreateExtension
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rag', '0001_initial'),
+        ("rag", "0001_initial"),
     ]
 
     operations = [
+        CreateExtension("vector"),
         migrations.CreateModel(
-            name='DocumentChunk',
+            name="DocumentChunk",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('chunk_index', models.PositiveIntegerField()),
-                ('content', models.TextField()),
-                ('embedding', pgvector.django.vector.VectorField(dimensions=768)),
-                ('page_number', models.PositiveIntegerField(blank=True, null=True)),
-                ('metadata', models.JSONField(default=dict)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "public_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("chunk_index", models.PositiveIntegerField()),
+                ("content", models.TextField()),
+                ("embedding", pgvector.django.vector.VectorField(dimensions=768)),
+                ("page_number", models.PositiveIntegerField(blank=True, null=True)),
+                ("metadata", models.JSONField(default=dict)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='knowledgebase',
-            name='description',
+            model_name="knowledgebase",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='source',
-            name='error_message',
+            model_name="source",
+            name="error_message",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='source',
-            name='file_signature',
+            model_name="source",
+            name="file_signature",
             field=models.CharField(blank=True, db_index=True, max_length=64, null=True),
         ),
         migrations.AddField(
-            model_name='source',
-            name='file_size',
+            model_name="source",
+            name="file_size",
             field=models.BigIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='source',
-            name='page_count',
+            model_name="source",
+            name="page_count",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='source',
-            name='source_type',
-            field=models.CharField(blank=True, choices=[('pdf', 'PDF'), ('docx', 'DOCX'), ('txt', 'Text'), ('md', 'Markdown'), ('html', 'HTML')], max_length=10, null=True),
+            model_name="source",
+            name="source_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("pdf", "PDF"),
+                    ("docx", "DOCX"),
+                    ("txt", "Text"),
+                    ("md", "Markdown"),
+                    ("html", "HTML"),
+                ],
+                max_length=10,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='source',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('completed', 'Completed'), ('failed', 'Failed')], db_index=True, default='pending', max_length=25),
+            model_name="source",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("processing", "Processing"),
+                    ("completed", "Completed"),
+                    ("failed", "Failed"),
+                ],
+                db_index=True,
+                default="pending",
+                max_length=25,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='source',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('source_url__isnull', False), ('source_file__isnull', True)), models.Q(('source_url__isnull', True), ('source_file__isnull', False)), _connector='OR'), name='source_url_xor_file'),
+            model_name="source",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(
+                        ("source_url__isnull", False), ("source_file__isnull", True)
+                    ),
+                    models.Q(
+                        ("source_url__isnull", True), ("source_file__isnull", False)
+                    ),
+                    _connector="OR",
+                ),
+                name="source_url_xor_file",
+            ),
         ),
         migrations.AddField(
-            model_name='documentchunk',
-            name='source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='chunks', to='rag.source'),
+            model_name="documentchunk",
+            name="source",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="chunks",
+                to="rag.source",
+            ),
         ),
     ]
