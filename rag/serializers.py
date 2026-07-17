@@ -1,20 +1,17 @@
-from rest_framework import serializers
+from shared.serializers import BaseModelSerializer
 from .models import Source, KnowledgeBase
 
 
-class SourceSerializer(serializers.ModelSerializer):
-    class Meta:
+class SourceSerializer(BaseModelSerializer):
+    class Meta(BaseModelSerializer.Meta):
         model = Source
-        fields = "__all__"
 
 
-class KnowledgeBaseSerializer(serializers.ModelSerializer):
-    sources = serializers.SerializerMethodField(read_only=True)
+class KnowledgeBaseSerializer(BaseModelSerializer):
+    sources = SourceSerializer(
+        many=True,
+        read_only=True,
+    )
 
-    class Meta:
+    class Meta(BaseModelSerializer.Meta):
         model = KnowledgeBase
-        fields = "__all__"
-
-    def get_sources(self, obj):
-        sources = Source.objects.filter(knowledge_base=obj)
-        return SourceSerializer(sources, many=True).data
