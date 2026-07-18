@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import status
 from shared.utils.response import success_response, error_response
-from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from uuid import UUID
 
@@ -11,8 +10,6 @@ from .models import Source, KnowledgeBase
 
 
 class SourceAPIView(APIView):
-    permission_classes = [AllowAny]
-
     def post(self, request):
         try:
             data = request.data
@@ -123,8 +120,6 @@ class SourceAPIView(APIView):
 
 
 class KnowledgeBaseAPIView(APIView):
-    permission_classes = [AllowAny]
-
     def post(self, request):
         try:
             serializer = KnowledgeBaseSerializer(data=request.data)
@@ -145,12 +140,10 @@ class KnowledgeBaseAPIView(APIView):
                 {type(e).__name__: str(e)},
             )
 
-    def get(self, request):
+    def get(self, request, public_id: UUID | None = None):
         try:
-            kb_id = request.query_params.get("kb_id")
-
-            if kb_id:
-                kb = get_object_or_404(KnowledgeBase, public_id=kb_id)
+            if public_id:
+                kb = get_object_or_404(KnowledgeBase, public_id=public_id)
                 serializer = KnowledgeBaseSerializer(kb)
             else:
                 queryset = KnowledgeBase.objects.all()
@@ -173,7 +166,9 @@ class KnowledgeBaseAPIView(APIView):
 
     def patch(self, request, public_id: UUID):
         try:
-            kb = get_object_or_404(KnowledgeBase, public_id=public_id)
+            kb = get_object_or_404(
+                KnowledgeBase, public_id=public_id, user=request.user
+            )
             serializer = KnowledgeBaseSerializer(kb, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -192,10 +187,11 @@ class KnowledgeBaseAPIView(APIView):
                 {type(e).__name__: str(e)},
             )
 
-    def delete(self, request):
+    def delete(self, request, public_id: UUID):
         try:
-            kb_id = request.query_params.get("kb_id")
-            kb = get_object_or_404(KnowledgeBase, public_id=kb_id)
+            kb = get_object_or_404(
+                KnowledgeBase, public_id=public_id, user=request.user
+            )
             kb.delete()
             return success_response(
                 status.HTTP_200_OK,

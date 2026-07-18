@@ -3,15 +3,36 @@ from .models import User, UserSession
 
 
 class UserSessionAdmin(admin.ModelAdmin):
-    list_display = ["user__email", "jti", "expires_at", "is_active"]
+    list_display = ["user__email", "created_at", "expires_at", "is_active"]
     search_fields = [
         "user__email",
         "user__first_name",
         "user__last_name",
         "user__public_id",
-        "jti",
     ]
-    list_filter = ["expires_at", "is_active"]
+    list_filter = ["expires_at", "created_at", "updated_at", "is_active"]
+    fields = [
+        "user",
+        "ip_address",
+        "is_active",
+        "user_agent",
+        "device_type",
+        "browser",
+        "os",
+        "expires_at",
+        "created_at",
+        "updated_at",
+    ]
+    readonly_fields = [
+        "user",
+        "ip_address",
+        "user_agent",
+        "device_type",
+        "browser",
+        "os",
+        "created_at",
+        "updated_at",
+    ]
 
 
 class UserAdmin(admin.ModelAdmin):
